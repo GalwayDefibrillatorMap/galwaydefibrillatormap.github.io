@@ -15,6 +15,56 @@
             padding: 14px 20px;
             font-size: 1.1rem;
             letter-spacing: .5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .lang-switcher {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lang-switcher label {
+            font-size: 13px;
+            color: rgba(255,255,255,.8);
+            font-weight: 500;
+        }
+        .lang-switcher select {
+            appearance: none;
+            -webkit-appearance: none;
+            background: rgba(255,255,255,.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.35);
+            border-radius: 6px;
+            padding: 5px 30px 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='white'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            transition: background .2s;
+        }
+        .lang-switcher select:hover {
+            background-color: rgba(255,255,255,.25);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='white'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .lang-switcher select option {
+            background: #fff;
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            header { flex-direction: column; gap: 6px; padding: 10px 12px; }
+            .lang-switcher { position: static; transform: none; }
         }
 
         #content {
@@ -66,17 +116,53 @@
             font-weight: 600;
             border-bottom: 1px solid #dadce0;
         }
-        #directions-panel .adp-directions {
+        /* Route step styles (Routes API) */
+        .route-steps {
             padding: 0;
         }
-        /* Clean up Google's default directions table styling */
-        #directions-panel table {
-            width: 100%;
-            font-size: 13px;
-        }
-        #directions-panel td {
-            padding: 8px 14px;
+        .route-step {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px 14px;
             border-bottom: 1px solid #f0f0f0;
+        }
+        .route-step .step-num {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            background: #7B1F34;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            margin-top: 2px;
+        }
+        .route-step .step-detail {
+            flex: 1;
+        }
+        .route-step .step-instruction {
+            font-size: 13px;
+            color: #333;
+            line-height: 1.4;
+        }
+        .route-step .step-distance {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Blue dot for user location (AdvancedMarkerElement) */
+        .user-location-dot {
+            width: 20px;
+            height: 20px;
+            background: #4285F4;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px rgba(66, 133, 244, 0.6);
         }
 
         /* InfoWindow styling */
@@ -138,7 +224,14 @@
 <body>
 
     <header>
-        <h1>Galway Defibrillator Map</h1>
+        <h1 id="page-title">Galway Defibrillator Map</h1>
+        <div class="lang-switcher">
+            <label for="lang-select" id="lang-label">🌐</label>
+            <select id="lang-select" onchange="changeLanguage(this.value)">
+                <option value="en">🇬🇧 English</option>
+                <option value="ga">🇮🇪 Gaeilge</option>
+            </select>
+        </div>
     </header>
 
     <div id="content">
@@ -155,166 +248,361 @@
 
     <script>
         /* ──────────────────────────────────────────────
-         *  DEFIBRILLATOR DATA -  
-         *  Add more entries to this array to add markers.
+         *  LANGUAGE / i18n SYSTEM
+         * ────────────────────────────────────────────── */
+        const TRANSLATIONS = {
+            en: {
+                pageTitle: "Galway Defibrillator Map",
+                directionsHeading: "🧭 Directions",
+                directionsBtn: "🧭 Directions",
+                navigateBtn: "📍 Navigate",
+                yourLocation: "Your Location",
+                noLocationAlert: "Your location is not available. Please allow location access and reload the page.",
+                directionsError: "Could not get directions: ",
+                close: "Close"
+            },
+            ga: {
+                pageTitle: "Léarscáil Dífibrileoir na Gaillimhe",
+                directionsHeading: "🧭 Treoracha",
+                directionsBtn: "🧭 Treoracha",
+                navigateBtn: "📍 Nascleanúint",
+                yourLocation: "Do Shuíomh",
+                noLocationAlert: "Níl do shuíomh ar fáil. Ceadaigh rochtain suímh agus athlódáil an leathanach.",
+                directionsError: "Ní féidir treoracha a fháil: ",
+                close: "Dún"
+            }
+        };
+
+        /* ──────────────────────────────────────────────
+         *  DEFIBRILLATOR DATA  (with per-language text)
          * ────────────────────────────────────────────── */
         const defibrillators = [
             {
                 lat: 53.2745,
                 lng: -9.0492,
-                title: "Eyre Square Defibrillator",
-                description: "Located at the main entrance of Eyre Square Shopping Centre. Available 24/7.",
+                title:       { en: "Eyre Square Defibrillator",   ga: "Dífibrileoir Chearnóg Eyre" },
+                description: { en: "Located at the main entrance of Eyre Square Shopping Centre. Available 24/7.",
+                               ga: "Suite ag príomhbhealach isteach Ionad Siopadóireachta Chearnóg Eyre. Ar fáil 24/7." },
                 image: "1708426446965.jpeg"
             },
             {
                 lat: 53.2707,
                 lng: -9.0568,
-                title: "Spanish Arch Defibrillator",
-                description: "Wall-mounted unit beside the Spanish Arch, near the Galway City Museum entrance.",
+                title:       { en: "Spanish Arch Defibrillator",   ga: "Dífibrileoir an Áirse Spáinnigh" },
+                description: { en: "Wall-mounted unit beside the Spanish Arch, near the Galway City Museum entrance.",
+                               ga: "Aonad ar an mballa in aice leis an Áirse Spáinneach, gar d'iontráil Mhúsaem Cathrach na Gaillimhe." },
                 image: "1708426446965.jpeg"
             },
             {
                 lat: 53.2812,
                 lng: -9.0625,
-                title: "NUIG Campus Defibrillator",
-                description: "Inside the main foyer of the Áras na Mac Léinn (Student Centre), University of Galway.",
+                title:       { en: "NUIG Campus Defibrillator",   ga: "Dífibrileoir Champas OÉ Gaillimh" },
+                description: { en: "Inside the main foyer of the Áras na Mac Léinn (Student Centre), University of Galway.",
+                               ga: "Istigh i bpríomhfhorhalla Áras na Mac Léinn, Ollscoil na Gaillimhe." },
                 image: "1708426446965.jpeg"
             }
         ];
 
         /* ──────────────────────────────────────────────
+         *  LANGUAGE HELPERS
+         * ────────────────────────────────────────────── */
+        function currentLang() {
+            return localStorage.getItem('lang') || 'en';
+        }
+
+        function t(key) {
+            const lang = currentLang();
+            return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.en[key] || key;
+        }
+
+        function applyTranslations() {
+            const lang = currentLang();
+            document.documentElement.lang = lang;
+            document.getElementById('page-title').textContent = t('pageTitle');
+            document.querySelector('#directions-panel .panel-header h2').textContent = t('directionsHeading');
+            document.querySelector('#directions-panel .panel-header button').title = t('close');
+            document.getElementById('lang-select').value = lang;
+        }
+
+        function changeLanguage(lang) {
+            localStorage.setItem('lang', lang);
+            // Reload the page so Google Maps API reloads with the new language
+            window.location.reload();
+        }
+
+        /* ──────────────────────────────────────────────
+         *  CLIENT-SIDE IRISH DIRECTION TRANSLATION
+         *  Google Routes API does not support Irish (ga),
+         *  so we translate common English direction terms.
+         * ────────────────────────────────────────────── */
+        const DIRECTION_TERMS_GA = [
+            // Must check longer phrases first to avoid partial replacements
+            [/\bHead\b/gi, 'Téigh'],
+            [/\bWalk\b/gi, 'Siúil'],
+            [/\bContinue\b/gi, 'Lean ar aghaidh'],
+            [/\bContinue straight\b/gi, 'Lean díreach ar aghaidh'],
+            [/\bTurn sharp left\b/gi, 'Cas go géar ar chlé'],
+            [/\bTurn sharp right\b/gi, 'Cas go géar ar dheis'],
+            [/\bTurn slight left\b/gi, 'Cas beagán ar chlé'],
+            [/\bTurn slight right\b/gi, 'Cas beagán ar dheis'],
+            [/\bTurn left\b/gi, 'Cas ar chlé'],
+            [/\bTurn right\b/gi, 'Cas ar dheis'],
+            [/\bSlight left\b/gi, 'Beagán ar chlé'],
+            [/\bSlight right\b/gi, 'Beagán ar dheis'],
+            [/\bSharp left\b/gi, 'Go géar ar chlé'],
+            [/\bSharp right\b/gi, 'Go géar ar dheis'],
+            [/\bKeep left\b/gi, 'Fan ar chlé'],
+            [/\bKeep right\b/gi, 'Fan ar dheis'],
+            [/\bMerge\b/gi, 'Cumaisc'],
+            [/\bEnter the roundabout\b/gi, 'Téigh isteach sa timpeallán'],
+            [/\bAt the roundabout\b/gi, 'Ag an timpeallán'],
+            [/\broundabout\b/gi, 'timpeallán'],
+            [/\bU-turn\b/gi, 'cas timpeall'],
+            [/\bMake a U-turn\b/gi, 'Déan cas timpeall'],
+            [/\bDestination will be on the left\b/gi, 'Beidh an ceann scríbe ar chlé'],
+            [/\bDestination will be on the right\b/gi, 'Beidh an ceann scríbe ar dheis'],
+            [/\bDestination\b/gi, 'Ceann scríbe'],
+            [/\bArrive at\b/gi, 'Sroich'],
+            [/\byour destination\b/gi, 'do cheann scríbe'],
+            [/\bon the left\b/gi, 'ar chlé'],
+            [/\bon the right\b/gi, 'ar dheis'],
+            [/\bto the left\b/gi, 'ar chlé'],
+            [/\bto the right\b/gi, 'ar dheis'],
+            [/\bleft\b/gi, 'clé'],
+            [/\bright\b/gi, 'dheis'],
+            [/\bnorth\b/gi, 'ó thuaidh'],
+            [/\bsouth\b/gi, 'ó dheas'],
+            [/\beast\b/gi, 'soir'],
+            [/\bwest\b/gi, 'siar'],
+            [/\bnortheast\b/gi, 'soir ó thuaidh'],
+            [/\bnorthwest\b/gi, 'siar ó thuaidh'],
+            [/\bsoutheast\b/gi, 'soir ó dheas'],
+            [/\bsouthwest\b/gi, 'siar ó dheas'],
+            [/\bonto\b/gi, 'ar'],
+            [/\btoward\b/gi, 'i dtreo'],
+            [/\btowards\b/gi, 'i dtreo'],
+            [/\bcross\b/gi, 'trasnaigh'],
+            [/\bTake the\b/gi, 'Glac an'],
+            [/\bexit\b/gi, 'bealach amach'],
+            [/\bthe street\b/gi, 'an tsráid'],
+            [/\bthe road\b/gi, 'an bóthar'],
+            [/\bstreet\b/gi, 'sráid'],
+            [/\broad\b/gi, 'bóthar'],
+            [/\bbridge\b/gi, 'droichead'],
+            [/\bsquare\b/gi, 'cearnóg'],
+        ];
+
+        function translateDirectionToIrish(text) {
+            if (currentLang() !== 'ga' || !text) return text;
+            let result = text;
+            for (const [pattern, replacement] of DIRECTION_TERMS_GA) {
+                result = result.replace(pattern, replacement);
+            }
+            return result;
+        }
+
+        /* ──────────────────────────────────────────────
+         *  POLYLINE DECODER (avoids loading geometry library)
+         * ────────────────────────────────────────────── */
+        function decodePolyline(encoded) {
+            const points = [];
+            let index = 0, lat = 0, lng = 0;
+            while (index < encoded.length) {
+                let b, shift = 0, result = 0;
+                do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+                shift = 0; result = 0;
+                do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+                points.push({ lat: lat / 1e5, lng: lng / 1e5 });
+            }
+            return points;
+        }
+
+        /* ──────────────────────────────────────────────
          *  INITIALISE THE MAP
          * ────────────────────────────────────────────── */
-        // Global so the directions button and clear button can access them
+        const API_KEY = 'AIzaSyBaIUbxbP1rJ92IHeiOvs1OZhMVzRkIFTA';
         let userPosition = null;
-        let directionsRenderer = null;
+        let routePolyline = null;
 
         function clearRoute() {
-            if (directionsRenderer) {
-                directionsRenderer.setMap(null);
-                directionsRenderer = null;
+            if (routePolyline) {
+                routePolyline.setMap(null);
+                routePolyline = null;
             }
             document.getElementById('directions-panel').style.display = 'none';
             document.getElementById('directions-summary').textContent = '';
             document.getElementById('directions-steps').innerHTML = '';
         }
 
-        function getDirections(destLat, destLng, map) {
+        /* ──────────────────────────────────────────────
+         *  DIRECTIONS  (Routes API — computeRoutes)
+         *  Requires the Routes API to be enabled in your
+         *  Google Cloud project alongside the Maps JS API.
+         * ────────────────────────────────────────────── */
+        async function getDirections(destLat, destLng, map) {
             if (!userPosition) {
-                alert('Your location is not available. Please allow location access and reload the page.');
+                alert(t('noLocationAlert'));
                 return;
             }
 
-            // Clear any previous route
             clearRoute();
 
-            const directionsService = new google.maps.DirectionsService();
-            directionsRenderer = new google.maps.DirectionsRenderer({
-                map: map,
-                suppressMarkers: false,
-                polylineOptions: { strokeColor: '#1a73e8', strokeWeight: 5 },
-                panel: document.getElementById('directions-steps')
-            });
+            try {
+                const response = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Goog-Api-Key': API_KEY,
+                        'X-Goog-FieldMask': 'routes.polyline.encodedPolyline,routes.legs.steps.navigationInstruction,routes.legs.steps.localizedValues,routes.legs.localizedValues'
+                    },
+                    body: JSON.stringify({
+                        origin:      { location: { latLng: { latitude: userPosition.lat, longitude: userPosition.lng } } },
+                        destination: { location: { latLng: { latitude: destLat,          longitude: destLng } } },
+                        travelMode:  'WALK',
+                        languageCode: currentLang()
+                    })
+                });
 
-            directionsService.route(
-                {
-                    origin: userPosition,
-                    destination: { lat: destLat, lng: destLng },
-                    travelMode: google.maps.TravelMode.WALKING
-                },
-                (result, status) => {
-                    if (status === 'OK') {
-                        directionsRenderer.setDirections(result);
+                const data = await response.json();
 
-                        // Show summary (distance + duration)
-                        const leg = result.routes[0].legs[0];
-                        document.getElementById('directions-summary').textContent =
-                            `🚶 ${leg.distance.text}  •  ⏱ ${leg.duration.text}`;
-
-                        // Show panel
-                        document.getElementById('directions-panel').style.display = 'block';
-                    } else {
-                        alert('Could not get directions: ' + status);
-                    }
+                if (!data.routes || data.routes.length === 0) {
+                    alert(t('directionsError') + (data.error?.message || 'NO_ROUTES'));
+                    return;
                 }
-            );
+
+                const route = data.routes[0];
+                const leg   = route.legs[0];
+
+                // Draw the route polyline on the map
+                const path = decodePolyline(route.polyline.encodedPolyline);
+                routePolyline = new google.maps.Polyline({
+                    path: path,
+                    strokeColor: '#1a73e8',
+                    strokeWeight: 5,
+                    strokeOpacity: 0.85,
+                    map: map
+                });
+
+                // Summary bar
+                const distText = leg.localizedValues?.distance?.text || '';
+                const durText  = leg.localizedValues?.duration?.text || '';
+                document.getElementById('directions-summary').textContent =
+                    `🚶 ${distText}  •  ⏱ ${durText}`;
+
+                // Build step-by-step HTML
+                let stepsHtml = '<div class="route-steps">';
+                (leg.steps || []).forEach((step, i) => {
+                    const rawInstruction = step.navigationInstruction?.instructions || '';
+                    const instruction = translateDirectionToIrish(rawInstruction);
+                    const dist = step.localizedValues?.distance?.text || '';
+                    stepsHtml += `
+                        <div class="route-step">
+                            <span class="step-num">${i + 1}</span>
+                            <div class="step-detail">
+                                <div class="step-instruction">${instruction}</div>
+                                <div class="step-distance">${dist}</div>
+                            </div>
+                        </div>`;
+                });
+                stepsHtml += '</div>';
+                document.getElementById('directions-steps').innerHTML = stepsHtml;
+
+                // Show panel
+                document.getElementById('directions-panel').style.display = 'block';
+
+                // Fit map to route
+                const bounds = new google.maps.LatLngBounds();
+                path.forEach(p => bounds.extend(p));
+                map.fitBounds(bounds);
+
+            } catch (err) {
+                alert(t('directionsError') + err.message);
+            }
         }
 
         function startNavigation(destLat, destLng) {
-            // Opens Google Maps app (on phone) or web (on desktop)
-            // with walking directions and live GPS navigation
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=walking`;
+            const lang = currentLang();
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=walking&hl=${lang}`;
             window.open(url, '_blank');
         }
 
-        function initMap() {
+        /* ──────────────────────────────────────────────
+         *  initMap  (uses AdvancedMarkerElement)
+         * ────────────────────────────────────────────── */
+        async function initMap() {
+            const lang   = currentLang();
             const galway = { lat: 53.2745, lng: -9.0492 };
 
-            const map = new google.maps.Map(document.getElementById("map"), {
+            // Import the marker library (required for AdvancedMarkerElement)
+            const { AdvancedMarkerElement } = await google.maps.importLibrary('marker');
+
+            const map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 14,
                 center: galway,
                 mapTypeControl: true,
-                streetViewControl: false
+                streetViewControl: false,
+                mapId: 'galway_defib_map'       // required for AdvancedMarkerElement
             });
 
-            // Make map accessible to global getDirections function
             window._map = map;
 
-            // Only one InfoWindow open at a time
             const infoWindow = new google.maps.InfoWindow();
 
-            // SVG heart with ECG heartbeat line (defibrillator style)
+            // SVG heart with ECG heartbeat line
             const heartSvg = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="52" height="62" viewBox="-2 -2 52 62">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="56" viewBox="-2 -2 52 62">
                     <defs>
                         <filter id="shadow" x="-30%" y="-20%" width="160%" height="160%">
                             <feDropShadow dx="1" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.6"/>
                         </filter>
                     </defs>
                     <g filter="url(#shadow)">
-                        <!-- Classic heart shape -->
                         <path d="M24 44 C14 36, 4 28, 4 18 C4 11, 9 5, 15 5
                                  C18.5 5, 21.5 7, 24 11 C26.5 7, 29.5 5, 33 5
                                  C39 5, 44 11, 44 18 C44 28, 34 36, 24 44Z"
                               fill="#C62828" stroke="#8E0000" stroke-width="1.2"/>
-                        <!-- Subtle highlight -->
                         <ellipse cx="15" cy="17" rx="5" ry="6" fill="white" opacity="0.18"/>
-                        <!-- ECG / heartbeat line -->
                         <polyline points="8,26 14,26 16,26 18,22 20,32 22,18 24,30 26,22 28,26 30,26 40,26"
                               fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
                 </svg>`;
-            const heartIconUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(heartSvg);
 
             defibrillators.forEach(defib => {
-                const marker = new google.maps.Marker({
+                const title = defib.title[lang] || defib.title.en;
+                const desc  = defib.description[lang] || defib.description.en;
+
+                // Build an HTML element for the marker content
+                const markerEl = document.createElement('div');
+                markerEl.innerHTML = heartSvg;
+                markerEl.style.cursor = 'pointer';
+
+                const marker = new AdvancedMarkerElement({
                     position: { lat: defib.lat, lng: defib.lng },
                     map: map,
-                    title: defib.title,
-                    icon: {
-                        url: heartIconUrl,
-                        scaledSize: new google.maps.Size(48, 56),
-                        anchor: new google.maps.Point(24, 50)
-                    }
+                    title: title,
+                    content: markerEl,
+                    gmpClickable: true
                 });
 
-                marker.addListener("click", () => {
+                marker.addEventListener('gmp-click', () => {
                     infoWindow.setContent(`
                         <div class="info-window">
-                            <img src="${defib.image}" alt="${defib.title}">
-                            <h3>${defib.title}</h3>
-                            <p>${defib.description}</p>
+                            <img src="${defib.image}" alt="${title}">
+                            <h3>${title}</h3>
+                            <p>${desc}</p>
                             <button class="directions-btn"
                                 onclick="getDirections(${defib.lat}, ${defib.lng}, window._map)">
-                                🧭 Directions
+                                ${t('directionsBtn')}
                             </button>
                             <button class="navigate-btn"
                                 onclick="startNavigation(${defib.lat}, ${defib.lng})">
-                                📍 Navigate
+                                ${t('navigateBtn')}
                             </button>
                         </div>
                     `);
-                    infoWindow.open(map, marker);
+                    infoWindow.open({ anchor: marker, map: map });
                 });
             });
 
@@ -329,60 +617,63 @@
                             lng: position.coords.longitude
                         };
 
-                        // Store globally so directions can use it
                         userPosition = userPos;
 
-                        // Blue dot for the user's location
-                        new google.maps.Marker({
+                        // Styled blue dot via AdvancedMarkerElement
+                        const blueDot = document.createElement('div');
+                        blueDot.className = 'user-location-dot';
+
+                        new AdvancedMarkerElement({
                             position: userPos,
                             map: map,
-                            title: "Your Location",
-                            icon: {
-                                path: google.maps.SymbolPath.CIRCLE,
-                                scale: 10,
-                                fillColor: "#4285F4",
-                                fillOpacity: 1,
-                                strokeColor: "#ffffff",
-                                strokeWeight: 3
-                            },
+                            title: t('yourLocation'),
+                            content: blueDot,
                             zIndex: 999
                         });
 
-                        // Optional: blue halo to mimic accuracy ring
+                        // Accuracy ring
                         new google.maps.Circle({
                             map: map,
                             center: userPos,
                             radius: position.coords.accuracy,
-                            fillColor: "#4285F4",
+                            fillColor: '#4285F4',
                             fillOpacity: 0.15,
-                            strokeColor: "#4285F4",
+                            strokeColor: '#4285F4',
                             strokeOpacity: 0.3,
                             strokeWeight: 1
                         });
 
-                        // Pan map to include user location
                         const bounds = new google.maps.LatLngBounds();
                         bounds.extend(userPos);
                         defibrillators.forEach(d => bounds.extend({ lat: d.lat, lng: d.lng }));
                         map.fitBounds(bounds);
                     },
                     (error) => {
-                        console.warn("Geolocation failed:", error.message);
+                        console.warn('Geolocation failed:', error.message);
                     }
                 );
             }
+
+            // Apply all UI translations once DOM is ready
+            applyTranslations();
         }
     </script>
 
     <!--
-        IMPORTANT: Replace YOUR_API_KEY below with a valid Google Maps JavaScript API key.
-        Get one free at https://console.cloud.google.com/google/maps-apis
+        Google Maps API — loaded with the language parameter matching the user's choice.
+        The language controls map labels, directions text, and all Maps UI.
+        NOTE: The Routes API must also be enabled in your Google Cloud project.
     -->
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBaIUbxbP1rJ92IHeiOvs1OZhMVzRkIFTA&callback=initMap"
-        async defer>
+    <script>
+        (function() {
+            const lang = localStorage.getItem('lang') || 'en';
+            const s    = document.createElement('script');
+            s.src      = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&language=${lang}&loading=async&callback=initMap`;
+            s.async    = true;
+            s.defer    = true;
+            document.body.appendChild(s);
+        })();
     </script>
 
 </body>
-
 </html>
