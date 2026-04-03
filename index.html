@@ -230,6 +230,11 @@
             <select id="lang-select" onchange="changeLanguage(this.value)">
                 <option value="en">🇬🇧 English</option>
                 <option value="ga">🇮🇪 Gaeilge</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="nl">🇳🇱 Nederlands</option>
+                <option value="es">🇪🇸 Español</option>
+                <option value="pt">🇵🇹 Português</option>
             </select>
         </div>
     </header>
@@ -270,6 +275,56 @@
                 noLocationAlert: "Níl do shuíomh ar fáil. Ceadaigh rochtain suímh agus athlódáil an leathanach.",
                 directionsError: "Ní féidir treoracha a fháil: ",
                 close: "Dún"
+            },
+            fr: {
+                pageTitle: "Carte des Défibrillateurs de Galway",
+                directionsHeading: "🧭 Itinéraire",
+                directionsBtn: "🧭 Itinéraire",
+                navigateBtn: "📍 Naviguer",
+                yourLocation: "Votre position",
+                noLocationAlert: "Votre position n'est pas disponible. Veuillez autoriser l'accès à la localisation et recharger la page.",
+                directionsError: "Impossible d'obtenir l'itinéraire : ",
+                close: "Fermer"
+            },
+            de: {
+                pageTitle: "Galway Defibrillator-Karte",
+                directionsHeading: "🧭 Wegbeschreibung",
+                directionsBtn: "🧭 Route",
+                navigateBtn: "📍 Navigieren",
+                yourLocation: "Ihr Standort",
+                noLocationAlert: "Ihr Standort ist nicht verfügbar. Bitte erlauben Sie den Standortzugriff und laden Sie die Seite neu.",
+                directionsError: "Wegbeschreibung konnte nicht abgerufen werden: ",
+                close: "Schließen"
+            },
+            nl: {
+                pageTitle: "Galway Defibrillatorkaart",
+                directionsHeading: "🧭 Routebeschrijving",
+                directionsBtn: "🧭 Route",
+                navigateBtn: "📍 Navigeren",
+                yourLocation: "Uw locatie",
+                noLocationAlert: "Uw locatie is niet beschikbaar. Sta locatietoegang toe en herlaad de pagina.",
+                directionsError: "Kan routebeschrijving niet ophalen: ",
+                close: "Sluiten"
+            },
+            es: {
+                pageTitle: "Mapa de Desfibriladores de Galway",
+                directionsHeading: "🧭 Indicaciones",
+                directionsBtn: "🧭 Indicaciones",
+                navigateBtn: "📍 Navegar",
+                yourLocation: "Tu ubicación",
+                noLocationAlert: "Tu ubicación no está disponible. Permite el acceso a la ubicación y recarga la página.",
+                directionsError: "No se pudieron obtener las indicaciones: ",
+                close: "Cerrar"
+            },
+            pt: {
+                pageTitle: "Mapa de Desfibrilhadores de Galway",
+                directionsHeading: "🧭 Direções",
+                directionsBtn: "🧭 Direções",
+                navigateBtn: "📍 Navegar",
+                yourLocation: "A sua localização",
+                noLocationAlert: "A sua localização não está disponível. Permita o acesso à localização e recarregue a página.",
+                directionsError: "Não foi possível obter direções: ",
+                close: "Fechar"
             }
         };
 
@@ -280,25 +335,70 @@
             {
                 lat: 53.2745,
                 lng: -9.0492,
-                title:       { en: "Eyre Square Defibrillator",   ga: "Dífibrileoir Chearnóg Eyre" },
-                description: { en: "Located at the main entrance of Eyre Square Shopping Centre. Available 24/7.",
-                               ga: "Suite ag príomhbhealach isteach Ionad Siopadóireachta Chearnóg Eyre. Ar fáil 24/7." },
+                title: {
+                    en: "Eyre Square Defibrillator",
+                    ga: "Dífibrileoir Chearnóg Eyre",
+                    fr: "Défibrillateur d'Eyre Square",
+                    de: "Defibrillator am Eyre Square",
+                    nl: "Defibrillator Eyre Square",
+                    es: "Desfibrilador de Eyre Square",
+                    pt: "Desfibrilhador de Eyre Square"
+                },
+                description: {
+                    en: "Located at the main entrance of Eyre Square Shopping Centre. Available 24/7.",
+                    ga: "Suite ag príomhbhealach isteach Ionad Siopadóireachta Chearnóg Eyre. Ar fáil 24/7.",
+                    fr: "Situé à l'entrée principale du centre commercial d'Eyre Square. Disponible 24h/24.",
+                    de: "Am Haupteingang des Eyre Square Shopping Centre. Rund um die Uhr verfügbar.",
+                    nl: "Bij de hoofdingang van het Eyre Square Shopping Centre. 24/7 beschikbaar.",
+                    es: "Ubicado en la entrada principal del centro comercial Eyre Square. Disponible 24/7.",
+                    pt: "Localizado na entrada principal do centro comercial Eyre Square. Disponível 24/7."
+                },
                 image: "1708426446965.jpeg"
             },
             {
                 lat: 53.2707,
                 lng: -9.0568,
-                title:       { en: "Spanish Arch Defibrillator",   ga: "Dífibrileoir an Áirse Spáinnigh" },
-                description: { en: "Wall-mounted unit beside the Spanish Arch, near the Galway City Museum entrance.",
-                               ga: "Aonad ar an mballa in aice leis an Áirse Spáinneach, gar d'iontráil Mhúsaem Cathrach na Gaillimhe." },
+                title: {
+                    en: "Spanish Arch Defibrillator",
+                    ga: "Dífibrileoir an Áirse Spáinnigh",
+                    fr: "Défibrillateur de l'Arche Espagnole",
+                    de: "Defibrillator am Spanish Arch",
+                    nl: "Defibrillator Spaanse Boog",
+                    es: "Desfibrilador del Arco Español",
+                    pt: "Desfibrilhador do Arco Espanhol"
+                },
+                description: {
+                    en: "Wall-mounted unit beside the Spanish Arch, near the Galway City Museum entrance.",
+                    ga: "Aonad ar an mballa in aice leis an Áirse Spáinneach, gar d'iontráil Mhúsaem Cathrach na Gaillimhe.",
+                    fr: "Unité murale à côté de l'Arche Espagnole, près de l'entrée du musée de la ville de Galway.",
+                    de: "Wandmontierte Einheit neben dem Spanish Arch, nahe dem Eingang des Galway City Museum.",
+                    nl: "Wandeenheid naast de Spaanse Boog, bij de ingang van het Galway City Museum.",
+                    es: "Unidad montada en la pared junto al Arco Español, cerca de la entrada del Museo de la Ciudad de Galway.",
+                    pt: "Unidade montada na parede junto ao Arco Espanhol, perto da entrada do Museu da Cidade de Galway."
+                },
                 image: "1708426446965.jpeg"
             },
             {
                 lat: 53.2812,
                 lng: -9.0625,
-                title:       { en: "NUIG Campus Defibrillator",   ga: "Dífibrileoir Champas OÉ Gaillimh" },
-                description: { en: "Inside the main foyer of the Áras na Mac Léinn (Student Centre), University of Galway.",
-                               ga: "Istigh i bpríomhfhorhalla Áras na Mac Léinn, Ollscoil na Gaillimhe." },
+                title: {
+                    en: "NUIG Campus Defibrillator",
+                    ga: "Dífibrileoir Champas OÉ Gaillimh",
+                    fr: "Défibrillateur du campus de l'Université de Galway",
+                    de: "Defibrillator auf dem Campus der Universität Galway",
+                    nl: "Defibrillator Universiteit van Galway campus",
+                    es: "Desfibrilador del campus de la Universidad de Galway",
+                    pt: "Desfibrilhador do campus da Universidade de Galway"
+                },
+                description: {
+                    en: "Inside the main foyer of the Áras na Mac Léinn (Student Centre), University of Galway.",
+                    ga: "Istigh i bpríomhfhorhalla Áras na Mac Léinn, Ollscoil na Gaillimhe.",
+                    fr: "Dans le hall principal de l'Áras na Mac Léinn (Centre étudiant), Université de Galway.",
+                    de: "In der Hauptlobby des Áras na Mac Léinn (Studentenzentrum), Universität Galway.",
+                    nl: "In de hoofdhal van het Áras na Mac Léinn (Studentencentrum), Universiteit van Galway.",
+                    es: "Dentro del vestíbulo principal del Áras na Mac Léinn (Centro de Estudiantes), Universidad de Galway.",
+                    pt: "Dentro do átrio principal do Áras na Mac Léinn (Centro de Estudantes), Universidade de Galway."
+                },
                 image: "1708426446965.jpeg"
             }
         ];
@@ -334,13 +434,14 @@
          *  CLIENT-SIDE IRISH DIRECTION TRANSLATION
          *  Google Routes API does not support Irish (ga),
          *  so we translate common English direction terms.
+         *  French, German & Dutch are natively supported
+         *  by the API and don't need client-side translation.
          * ────────────────────────────────────────────── */
         const DIRECTION_TERMS_GA = [
-            // Must check longer phrases first to avoid partial replacements
+            [/\bContinue straight\b/gi, 'Lean díreach ar aghaidh'],
             [/\bHead\b/gi, 'Téigh'],
             [/\bWalk\b/gi, 'Siúil'],
             [/\bContinue\b/gi, 'Lean ar aghaidh'],
-            [/\bContinue straight\b/gi, 'Lean díreach ar aghaidh'],
             [/\bTurn sharp left\b/gi, 'Cas go géar ar chlé'],
             [/\bTurn sharp right\b/gi, 'Cas go géar ar dheis'],
             [/\bTurn slight left\b/gi, 'Cas beagán ar chlé'],
@@ -357,8 +458,8 @@
             [/\bEnter the roundabout\b/gi, 'Téigh isteach sa timpeallán'],
             [/\bAt the roundabout\b/gi, 'Ag an timpeallán'],
             [/\broundabout\b/gi, 'timpeallán'],
-            [/\bU-turn\b/gi, 'cas timpeall'],
             [/\bMake a U-turn\b/gi, 'Déan cas timpeall'],
+            [/\bU-turn\b/gi, 'cas timpeall'],
             [/\bDestination will be on the left\b/gi, 'Beidh an ceann scríbe ar chlé'],
             [/\bDestination will be on the right\b/gi, 'Beidh an ceann scríbe ar dheis'],
             [/\bDestination\b/gi, 'Ceann scríbe'],
@@ -370,17 +471,17 @@
             [/\bto the right\b/gi, 'ar dheis'],
             [/\bleft\b/gi, 'clé'],
             [/\bright\b/gi, 'dheis'],
-            [/\bnorth\b/gi, 'ó thuaidh'],
-            [/\bsouth\b/gi, 'ó dheas'],
-            [/\beast\b/gi, 'soir'],
-            [/\bwest\b/gi, 'siar'],
             [/\bnortheast\b/gi, 'soir ó thuaidh'],
             [/\bnorthwest\b/gi, 'siar ó thuaidh'],
             [/\bsoutheast\b/gi, 'soir ó dheas'],
             [/\bsouthwest\b/gi, 'siar ó dheas'],
+            [/\bnorth\b/gi, 'ó thuaidh'],
+            [/\bsouth\b/gi, 'ó dheas'],
+            [/\beast\b/gi, 'soir'],
+            [/\bwest\b/gi, 'siar'],
             [/\bonto\b/gi, 'ar'],
-            [/\btoward\b/gi, 'i dtreo'],
             [/\btowards\b/gi, 'i dtreo'],
+            [/\btoward\b/gi, 'i dtreo'],
             [/\bcross\b/gi, 'trasnaigh'],
             [/\bTake the\b/gi, 'Glac an'],
             [/\bexit\b/gi, 'bealach amach'],
@@ -389,10 +490,10 @@
             [/\bstreet\b/gi, 'sráid'],
             [/\broad\b/gi, 'bóthar'],
             [/\bbridge\b/gi, 'droichead'],
-            [/\bsquare\b/gi, 'cearnóg'],
+            [/\bsquare\b/gi, 'cearnóg']
         ];
 
-        function translateDirectionToIrish(text) {
+        function translateDirection(text) {
             if (currentLang() !== 'ga' || !text) return text;
             let result = text;
             for (const [pattern, replacement] of DIRECTION_TERMS_GA) {
@@ -495,7 +596,7 @@
                 let stepsHtml = '<div class="route-steps">';
                 (leg.steps || []).forEach((step, i) => {
                     const rawInstruction = step.navigationInstruction?.instructions || '';
-                    const instruction = translateDirectionToIrish(rawInstruction);
+                    const instruction = translateDirection(rawInstruction);
                     const dist = step.localizedValues?.distance?.text || '';
                     stepsHtml += `
                         <div class="route-step">
