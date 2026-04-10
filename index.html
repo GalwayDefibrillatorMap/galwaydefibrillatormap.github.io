@@ -62,6 +62,20 @@
             color: #333;
         }
 
+        .suggest-btn {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #0d904f;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
         @media (max-width: 600px) {
             header { flex-direction: column; gap: 6px; padding: 10px 12px; }
             .lang-switcher { position: static; transform: none; }
@@ -219,12 +233,45 @@
         .info-window .navigate-btn:hover {
             background: #0b7a42;
         }
+        /* Suggest panel styling */
+        #suggest-panel {
+            display: none;
+            width: 420px;
+            height: 100%;
+            overflow-y: auto;
+            background: #fff;
+            border-left: 1px solid #dadce0;
+            font-size: 13px;
+            color: #333;
+        }
+        #suggest-panel .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: #7B1F34;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        #suggest-panel form { padding: 12px 14px; }
+        #suggest-panel label { display:block; margin-top:10px; font-weight:600; }
+        #suggest-panel input[type="text"],
+        #suggest-panel input[type="email"],
+        #suggest-panel textarea { width:100%; padding:8px; border:1px solid #ccc; border-radius:6px; margin-top:6px; }
+        #suggest-panel input[type="file"] { margin-top:6px; }
+        #suggest-panel .submit-row { margin-top:12px; display:flex; gap:8px; }
+        #suggest-panel .submit-row button { padding:8px 12px; border-radius:6px; border:none; cursor:pointer; }
+        #suggest-panel .submit-row .primary { background:#1a73e8; color:#fff; }
+        #suggest-panel .submit-row .secondary { background:#eee; }
     </style>
 </head>
 <body>
 
     <header>
         <h1 id="page-title">Galway Defibrillator Map</h1>
+        <button class="suggest-btn" onclick="toggleSuggestPanel()">➕ Suggest an AED</button>
         <div class="lang-switcher">
             <label for="lang-select" id="lang-label">🌐</label>
             <select id="lang-select" onchange="changeLanguage(this.value)">
@@ -249,6 +296,34 @@
             </div>
             <div class="summary" id="directions-summary"></div>
             <div id="directions-steps"></div>
+        </div>
+        <div id="suggest-panel">
+            <div class="panel-header">
+                <h2>➕ Suggest an AED</h2>
+                <button onclick="toggleSuggestPanel()" title="Close">✕</button>
+            </div>
+            <form id="suggest-form" onsubmit="handleSuggestSubmit(event)">
+                <label for="suggest-name">Name</label>
+                <input id="suggest-name" name="name" type="text" required>
+
+                <label for="suggest-email">Email</label>
+                <input id="suggest-email" name="email" type="email" required>
+
+                <label for="suggest-location">Location</label>
+                <input id="suggest-location" name="location" type="text" placeholder="Address, landmark or coords" required>
+
+                <label for="suggest-notes">Notes</label>
+                <textarea id="suggest-notes" name="notes" rows="4" placeholder="Any extra details"></textarea>
+
+                <label for="suggest-photo">Optional photo (jpg/png)</label>
+                <input id="suggest-photo" name="photo" type="file" accept="image/*">
+
+                <div class="submit-row">
+                    <button type="submit" class="primary">Send suggestion</button>
+                    <button type="button" class="secondary" onclick="document.getElementById('suggest-form').reset();">Clear</button>
+                </div>
+                <div id="suggest-status" style="margin-top:10px;font-size:13px;color:#444"></div>
+            </form>
         </div>
     </div>
 
@@ -716,6 +791,10 @@
          *  INITIALISE THE MAP
          * ────────────────────────────────────────────── */
         const API_KEY = 'AIzaSyBaIUbxbP1rJ92IHeiOvs1OZhMVzRkIFTA';
+        // Apps Script endpoint (replace with your deployed web app URL)
+        const SUGGESTIONS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyK0hvLU7sARzEGVZmsvKgkvPNRnDOSVRnIVAfrbAXJR0uPBdPIcrRnR38dzHUTVo1z/exec';
+        // reCAPTCHA v3 site key (replace with your site key)
+        const RECAPTCHA_SITE_KEY = '6LcDxrAsAAAAAFkaKluuHpExc4PK8KnlEkoulgO2';
         let userPosition = null;
         let routePolyline = null;
 
@@ -957,6 +1036,103 @@
         The language controls map labels, directions text, and all Maps UI.
         NOTE: The Routes API must also be enabled in your Google Cloud project.
     -->
+    <!-- reCAPTCHA v3 loader (uses RECAPTCHA_SITE_KEY) -->
+    <script>
+        // Load reCAPTCHA script dynamically using the RECAPTCHA_SITE_KEY constant
+        function loadRecaptcha() {
+            return new Promise((resolve, reject) => {
+                if (window.grecaptcha && grecaptcha.execute) return resolve();
+                const s = document.createElement('script');
+                s.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
+                s.async = true; s.defer = true;
+                s.onload = () => {
+                    // grecaptcha may be available after a short delay
+                    let attempts = 0;
+                    const iv = setInterval(() => {
+                        attempts++;
+                        if (window.grecaptcha && grecaptcha.ready) { clearInterval(iv); resolve(); }
+                        else if (attempts > 10) { clearInterval(iv); resolve(); }
+                    }, 200);
+                };
+                s.onerror = () => reject(new Error('Failed to load reCAPTCHA API'));
+                document.head.appendChild(s);
+            });
+        }
+
+        // Suggestion form handling: validate reCAPTCHA, send to Apps Script endpoint
+        function toggleSuggestPanel() {
+            const panel = document.getElementById('suggest-panel');
+            panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+        }
+
+        async function handleSuggestSubmit(e) {
+            e.preventDefault();
+            const statusEl = document.getElementById('suggest-status');
+            statusEl.style.color = '#444';
+            statusEl.textContent = 'Sending…';
+
+            const name = document.getElementById('suggest-name').value.trim();
+            const email = document.getElementById('suggest-email').value.trim();
+            const location = document.getElementById('suggest-location').value.trim();
+            const notes = document.getElementById('suggest-notes').value.trim();
+            const photoEl = document.getElementById('suggest-photo');
+
+            let photoData = null;
+            if (photoEl.files && photoEl.files[0]) {
+                photoData = await readFileAsDataURL(photoEl.files[0]);
+            }
+
+            try {
+                await loadRecaptcha();
+                if (window.grecaptcha && typeof grecaptcha.ready === 'function') {
+                    await new Promise(resolve => grecaptcha.ready(resolve));
+                } else {
+                    throw new Error('reCAPTCHA not available');
+                }
+
+                let token;
+                if (typeof grecaptcha.execute === 'function') {
+                    token = await grecaptcha.execute(RECAPTCHA_SITE_KEY, { action: 'submit' });
+                } else if (grecaptcha.enterprise && typeof grecaptcha.enterprise.execute === 'function') {
+                    token = await grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: 'submit' });
+                } else {
+                    throw new Error('grecaptcha.execute is not a function');
+                }
+
+                // Use URL-encoded form POST to avoid CORS preflight (Apps Script accepts form data)
+                const params = new URLSearchParams();
+                params.append('name', name);
+                params.append('email', email);
+                params.append('location', location);
+                params.append('notes', notes);
+                params.append('recaptchaToken', token);
+                if (photoData) params.append('photoData', photoData);
+
+                const res = await fetch(SUGGESTIONS_ENDPOINT, {
+                    method: 'POST',
+                    body: params
+                });
+
+                if (!res.ok) throw new Error((await res.text()) || res.statusText);
+
+                document.getElementById('suggest-form').reset();
+                statusEl.style.color = '#0b7a42';
+                statusEl.textContent = 'Suggestion sent — thank you!';
+            } catch (err) {
+                statusEl.style.color = '#b00020';
+                statusEl.textContent = 'Error sending suggestion: ' + err.message;
+            }
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => resolve(r.result);
+                r.onerror = () => reject(r.error);
+                r.readAsDataURL(file);
+            });
+        }
+    </script>
     <script>
         (function() {
             const lang = localStorage.getItem('lang') || 'en';
