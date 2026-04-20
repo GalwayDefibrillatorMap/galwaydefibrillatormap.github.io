@@ -16,6 +16,7 @@
             letter-spacing: .5px;
             display: grid;
             grid-template-columns: auto 1fr auto;
+            grid-template-rows: auto auto;
             align-items: center;
             gap: 12px;
         }
@@ -25,6 +26,7 @@
             align-items: center;
             gap: 6px;
             justify-self: end;
+            grid-row: 2;
         }
         .lang-switcher label {
             font-size: 13px;
@@ -70,6 +72,7 @@
             align-items: center;
             gap: 8px;
             justify-self: start;
+            grid-row: 2;
         }
 
         .suggest-btn .suggest-icon { display: inline-block; line-height: 1; }
@@ -85,13 +88,16 @@
             header { grid-template-columns: 1fr auto; gap: 6px; padding: 10px 12px; }
             .lang-switcher { justify-self: end; }
             .suggest-btn { justify-self: start; }
-            #page-title { grid-column: 1 / -1; text-align: center; font-size: 1rem; }
+            #page-title { grid-column: 1 / -1; text-align: center; }
         }
 
         #content {
             display: flex;
             height: calc(100vh - 52px);
         }
+
+        /* Title always on the top row and full width */
+        #page-title { grid-column: 1 / -1; grid-row: 1; text-align: center; font-size: 1.1rem; }
 
         #map {
             flex: 1;
