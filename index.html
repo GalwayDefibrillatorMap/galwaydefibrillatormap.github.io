@@ -74,6 +74,18 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .suggest-btn .suggest-icon { display: inline-block; line-height: 1; }
+        .suggest-btn .suggest-label { display: inline-block; }
+
+        /* Mobile: show only the icon for the suggest button */
+        @media (max-width: 480px) {
+            .suggest-btn { padding: 8px; width: 44px; height: 44px; border-radius: 50%; justify-content: center; }
+            .suggest-btn .suggest-label { display: none; }
         }
 
         @media (max-width: 600px) {
@@ -271,7 +283,7 @@
 
     <header>
         <h1 id="page-title">Galway Defibrillator Map</h1>
-        <button class="suggest-btn" onclick="toggleSuggestPanel()">➕ Suggest an AED</button>
+        <button class="suggest-btn" onclick="toggleSuggestPanel()"><span class="suggest-icon">➕</span><span class="suggest-label">Suggest an AED</span></button>
         <div class="lang-switcher">
             <label for="lang-select" id="lang-label">🌐</label>
             <select id="lang-select" onchange="changeLanguage(this.value)">
